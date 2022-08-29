@@ -62,6 +62,8 @@ class Root(ScreenManager):
         check = self.model.connect((HOST, PORT), self.model.username, self.model.password)
         if not check:
             toast('Invalid username or password')
+            self.get_screen('home').ids.username.text = ''
+            self.get_screen('home').ids.password.text = ''
             return
         print(f'{username} connected successfuly!')
         toast(f'{username} connected successfuly!')
@@ -135,8 +137,8 @@ class Root(ScreenManager):
             Animation.cancel_all(rv, "scroll_y")
             Animation(scroll_y=0, t="out_quad", d=0.5).start(rv)
 
-    def receive(self):
-        if not self.model.recieved_messages.empty():
+    def receive(self, dt):
+        if self.model.recieved_messages:
             msg = self.model.recieved_messages.pop()
             self.get_screen('chat').chat_logs.append(
                 {"text": msg, "send_by_user": False, "pos_hint": {"left": 1}}  # maybe will need to remove the pos_hint
@@ -144,7 +146,7 @@ class Root(ScreenManager):
             self.scroll_to_bottom()
 
     def update_users(self):
-        if not self.model.users.empty():
+        if self.model.users:
             self.get_screen('chat').users.clear()
             for user in self.model.users:
                 self.get_screen('chat').users.append(

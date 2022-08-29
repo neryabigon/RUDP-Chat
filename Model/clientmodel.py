@@ -19,12 +19,13 @@ class ClientModel:
 
     def connect(self, addr: tuple, username, password):
         if not self.client.connect(addr, username, password):
-            pass
+            return False
+        return True
 
     def disconnect(self):
         self.client.disconnect()
 
-    def send_message(self, message, send_to):
+    def send_message(self, message, send_to="all"):
         self.client.send_message(message, send_to)
 
     def receive_message(self):

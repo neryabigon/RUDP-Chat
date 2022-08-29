@@ -7,11 +7,7 @@ import logging
 
 ENCODING = 'utf-8'
 HOST = '127.0.0.1'  # here we need to put the server IP
-II = '0.0.0.0'
-PORT = 50004
-# ports for files
-SENDER_PORT = 50001
-RECEIVE_PORT = 50002
+PORT = 12345
 
 
 # client object
@@ -32,17 +28,17 @@ class Client:
             raise e
 
         try:
-            self.client_sock.connect(addr)
-            msg = f'{username}|{password}'
+            self.client_sock.connect(("127.0.0.1", 12345))
+            msg = f'{username}'
             self.client_sock.send(msg.encode(ENCODING))
             success = self.client_sock.recv(1024).decode(ENCODING)
         except socket.error as e:
-            print("Failed to connect to the server")
+            print("Failed to connect to the server 1")
             raise e
 
         # check credentials
-        if success is not 'OK':
-            print("Failed to connect to the server")
+        if success != 'OK':
+            print("Failed to connect to the server 2")
             self.client_sock.close()
             return False
         self.username = username

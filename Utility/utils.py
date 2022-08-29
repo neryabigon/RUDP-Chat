@@ -6,7 +6,8 @@ from kivy.lang import Builder
 Utility functions
 """
 
-def load_kv(file_name, file_path=os.path.join("View","libs", "uix", "kv")):
+
+def load_kv(file_name, file_path=os.path.join("View", "libs", "uix", "kv")):
     """
     `load_kv` func is used to load a .kv file.
     args that you can pass:
