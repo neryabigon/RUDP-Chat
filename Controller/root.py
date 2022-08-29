@@ -123,9 +123,15 @@ class Root(ScreenManager):
 
         self.model.send_message(text)
         self.get_screen('chat').chat_logs.append(
-            {"text": text, "send_by_user": True, "pos_hint": {"right": 1}}
+            {"text": text, "send_by_user": True, "REGULAR": True, "pos_hint": {"right": 1}}
         )
-
+        self.get_screen('chat').chat_logs.append(
+            {"text": text, "send_by_user": False, "REGULAR": False, "pos_hint": {"left": 1}}
+        )
+        self.get_screen('chat').chat_logs.append(
+            {"text": text, "send_by_user": False, "REGULAR": False, "pos_hint": {"left": 1}}
+        )
+        print(self.get_screen('chat').chat_logs)
         self.scroll_to_bottom()
         # clean text from textfield after sending
         self.get_screen('chat').ids.field.children[2].text = ""
@@ -152,6 +158,9 @@ class Root(ScreenManager):
                 self.get_screen('chat').users.append(
                     {"text": user[0], "online": user[1], }
                 )
+
+    def download(self, file_name):
+        print(f'file name: {file_name}')
 
     # def receive(self):
     #     incom = self.Rclient.receive()
