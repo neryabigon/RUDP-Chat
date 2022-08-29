@@ -1,0 +1,11 @@
+{
+
+    "from View.libs.uix.baseclass.home_screen import HomeScreen": {
+        "screen_name": "home",
+        "factory": "Factory.HomeScreen()"
+    },
+    "from View.libs.uix.baseclass.chat_screen import ChatScreen": {
+        "screen_name": "chat",
+        "factory": "Factory.ChatScreen()"
+    }
+}

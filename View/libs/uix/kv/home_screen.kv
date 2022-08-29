@@ -1,0 +1,152 @@
+<HomeScreen>
+    name: 'home'
+    MDLabel:
+        id: header_text
+        text: "ChatApp"
+        halign: "center"
+        font_style: "H4"
+        pos_hint: {"center_y": .8}
+
+    MDFloatingActionButton:
+        id: header_icon
+        icon: "arrow-left"
+        pos_hint: {"center_x": 1.2, "center_y": .9}
+        md_bg_color: app.theme_cls.accent_color
+        on_release: root.back_section()
+
+    MDCard:
+        id: sign_up
+        orientation: "vertical"
+        md_bg_color: app.theme_cls.primary_dark
+        radius: [0, dp(30), dp(30), 0]
+        size_hint: .45, .5
+        pos_hint: {"center_x": .2, "center_y": .4}
+        on_touch_down:
+            if self.collide_point(*args[1].pos): root.goto_section("sign_up")
+
+        RelativeLayout:
+
+            RelativeLayout:
+                id: welcome_sign_up
+
+                CustomLabel:
+                    text: "Sign Up"
+                    font_style: "H6"
+                    halign: "right"
+                    pos_hint: {"center_x": .4, "center_y": .85}
+
+                CustomLabel:
+                    text: "New here?"
+                    halign: "right"
+                    pos_hint: {"center_x": .4, "center_y": .72}
+
+                CustomLabel:
+                    text: "Don't worry just\nsign up to gain\naccess to this\namazing app"
+                    halign: "right"
+                    pos_hint: {"center_x": .4, "center_y": .5}
+
+            RelativeLayout:
+                id: sign_up_form
+                opacity: 0
+                disabled: True
+
+
+                MDTextField:
+                    id: Username
+                    hint_text: "Username"
+                    pos_hint: {"center_x": .5, "center_y": .6}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+
+
+                MDTextField:
+                    id: Password
+                    hint_text: "Password"
+                    password: True
+                    password_mask: '*'
+                    pos_hint: {"center_x": .5, "center_y": .4}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+                    on_text_validate: app.root.signup(username.text, password.text)
+
+                MDFloatingActionButton:
+                    icon: "arrow-right"
+                    pos_hint: {"center_x": .5, "center_y": .1}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+                    md_bg_color: app.theme_cls.primary_color
+                    on_release: app.root.signup(Username.text, Password.text)
+
+    MDCard:
+        id: sign_in
+        orientation: "vertical"
+        md_bg_color: app.theme_cls.primary_color
+        radius: [dp(30), 0, 0, dp(30)]
+        size_hint: .45, .4
+        pos_hint: {"center_x": .8, "center_y": .45}
+        on_touch_down:
+            if self.collide_point(*args[1].pos): root.goto_section("sign_in")
+
+
+
+        RelativeLayout:
+
+            RelativeLayout:
+                id: welcome_sign_in
+
+                CustomLabel:
+                    text: "Sign In"
+                    font_style: "H6"
+                    pos_hint: {"center_x": .6, "center_y": .85}
+
+                CustomLabel:
+                    text: "Returning?"
+                    pos_hint: {"center_x": .6, "center_y": .68}
+
+                CustomLabel:
+                    text: "Just sign in\nto resume what\nyou were doing"
+                    pos_hint: {"center_x": .6, "center_y": .4}
+                    adaptive_height: True
+
+            RelativeLayout:
+                id: sign_in_form
+                opacity: 0
+                disabled: True
+
+                MDTextField:
+                    id: username
+                    hint_text: "Username"
+                    pos_hint: {"center_x": .5, "center_y": .65}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+
+                MDTextField:
+                    id: password
+                    hint_text: "Password"
+                    password: True
+                    password_mask: '*'
+                    pos_hint: {"center_x": .5, "center_y": .37}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+                    on_text_validate: app.root.login(username.text, password.text)
+
+                MDFloatingActionButton:
+                    icon: "arrow-right"
+                    pos_hint: {"center_x": .5, "center_y": .12}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+                    md_bg_color: app.theme_cls.primary_dark
+                    on_release: app.root.login(username.text, password.text)
+
+
+<MDTextField>
+    size_hint_x: .8
+    text_color: app.theme_cls.bg_normal
+    color_mode: "custom"
+    line_color_focus: app.theme_cls.bg_normal
+    mode: "rectangle"
+
+
+<CustomLabel@MDLabel>
+    theme_text_color: "Custom"
+    text_color: 1, 1, 1, 1
