@@ -1,6 +1,7 @@
 #:import ChatBubble View.libs.uix.baseclass.chat_bubble
 #:import UserListItem View.libs.uix.baseclass.listitem
 #:import UserListItem View.libs.uix.baseclass.clickabletextfield
+#:import UserListItem View.libs.uix.baseclass.download_bubble
 
 <ChatScreen>
     name: "chat"
@@ -82,13 +83,52 @@
                         default_size_hint: 1, None
                         default_size: None, None
 
-                MDIconButton:
-                    icon: "refresh"
-                    pos_hint: {"center_x": .9, "center_y": .1}
-                    disabled: self.parent.disabled
-                    opacity: self.parent.opacity
-                    on_release: app.root.update_users()
+#                MDIconButton:
+#                    icon: "refresh"
+#                    pos_hint: {"center_x": .9, "center_y": .1}
+#                    disabled: self.parent.disabled
+#                    opacity: self.parent.opacity
+#                    on_release: app.root.refresh_users()
 
+            MDBoxLayout:
+                orientation: 'vertical'
+                MDLabel:
+                    id: header_text
+                    text: "FILES"
+                    halign: "center"
+                    font_style: "H6"
+                    size_hint: .9, .1
+                    pos_hint: {"center_x": .5}
+                RecycleView:
+                    id: files_rv
+                    data: root.files
+                    viewclass: 'DownloadBubble'
+                    canvas.before:
+                        Color:
+                            rgba: (255/255, 193/255, 7/255, 1)
+                        RoundedRectangle:
+                            size: self.size
+                            pos: self.pos
+                            radius: [15]
+                        Color:
+                            rgba: (1,1,1, 1)
+                        RoundedRectangle:
+                            size: self.width-8, self.height-8
+                            pos: self.x+4, self.y+4
+                        Color:
+                            rgba: (33/255, 150/255, 243/255, .2)
+                        RoundedRectangle:
+                            size: self.width-8, self.height-8
+                            pos: self.x+4, self.y+4
+
+                    RecycleBoxLayout:
+                        padding: dp(10)
+                        spacing: dp(10)
+                        orientation: "vertical"
+                        size_hint_y: None
+                        height: self.minimum_size[1]
+                        default_size_hint: 1, None
+                        default_size: None, None
 
 
         AnchorLayout:

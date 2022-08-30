@@ -61,7 +61,7 @@ class Root(ScreenManager):
         print(f'username: {username}: password: {password}')
         check = self.model.connect((HOST, PORT), self.model.username, self.model.password)
         if not check:
-            toast('Invalid username or password')
+            toast('Invalid username or password or server is down')
             self.get_screen('home').ids.username.text = ''
             self.get_screen('home').ids.password.text = ''
             return
@@ -69,6 +69,8 @@ class Root(ScreenManager):
         toast(f'{username} connected successfuly!')
         self.goto_screen('chat')
         Clock.schedule_interval(self.receive, 0.5)
+        Clock.schedule_interval(self.update_users, 3)
+        Clock.schedule_interval(self.update_files, 5)
 
     # def login(self, username, password):
     #     if not username:
@@ -110,12 +112,12 @@ class Root(ScreenManager):
     # def start_rec(self, _):
     #     self.re_thread.start()
     #
-    # def log_out(self):
-    #     self.Rclient.write('/exit')
-    #     print(f'{self.Rclient.username} disconnected')
-    #     toast(f'{self.Rclient.username} disconnected')
-    #     self.current = 'home'
-    #
+    def log_out(self):
+        self.model.disconnect()
+        print(f'{self.model.username} disconnected')
+        toast(f'{self.model.username} disconnected')
+        self.goto_screen('home')
+
     def send(self, text):
         if not text:
             toast("Please enter any text!")
@@ -123,15 +125,16 @@ class Root(ScreenManager):
 
         self.model.send_message(text)
         self.get_screen('chat').chat_logs.append(
-            {"text": text, "send_by_user": True, "REGULAR": True, "pos_hint": {"right": 1}}
+            {"text": text, "send_by_user": True, "pos_hint": {"right": 1}}
         )
-        self.get_screen('chat').chat_logs.append(
-            {"text": text, "send_by_user": False, "REGULAR": False, "pos_hint": {"left": 1}}
-        )
-        self.get_screen('chat').chat_logs.append(
-            {"text": text, "send_by_user": False, "REGULAR": False, "pos_hint": {"left": 1}}
-        )
-        print(self.get_screen('chat').chat_logs)
+
+        self.get_screen('chat').files.append({"text": 'file', "download": False})
+        self.get_screen('chat').files.append({"text": 'file', "download": False})
+        self.get_screen('chat').files.append({"text": 'file', "download": True})
+        self.get_screen('chat').files.append({"text": 'file', "download": False})
+
+        # print(self.get_screen('chat').chat_logs)
+
         self.scroll_to_bottom()
         # clean text from textfield after sending
         self.get_screen('chat').ids.field.children[2].text = ""
@@ -144,19 +147,29 @@ class Root(ScreenManager):
             Animation(scroll_y=0, t="out_quad", d=0.5).start(rv)
 
     def receive(self, dt):
-        if self.model.recieved_messages:
-            msg = self.model.recieved_messages.pop()
+        if self.model.received_messages:
+            msg = self.model.received_messages.pop()
             self.get_screen('chat').chat_logs.append(
                 {"text": msg, "send_by_user": False, "pos_hint": {"left": 1}}  # maybe will need to remove the pos_hint
             )
             self.scroll_to_bottom()
 
-    def update_users(self):
+    def update_users(self, dt):
+        self.model.get_users()
+        print(f'current users: {self.model.users}')
         if self.model.users:
             self.get_screen('chat').users.clear()
             for user in self.model.users:
                 self.get_screen('chat').users.append(
-                    {"text": user[0], "online": user[1], }
+                    {"text": user, "online": True}
+                )
+
+    def update_files(self, dt):
+        if self.model.files:
+            self.get_screen('chat').files.clear()
+            for file in self.model.files:
+                self.get_screen('chat').files.append(
+                    {"text": file[0], "download": file[1]}
                 )
 
     def download(self, file_name):

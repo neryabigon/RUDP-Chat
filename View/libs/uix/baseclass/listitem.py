@@ -5,8 +5,8 @@ from kivymd.uix.list import OneLineAvatarIconListItem
 Builder.load_string(
     """
 <UserListItem>
-    on_release: print("nerya")
-    text: 'nerya'
+    on_release: print(f'UserListItem: {self.text}')
+    text: 'UserListItem'
     IconRightWidget:
         icon: "face-profile"
     Widget:

@@ -2,9 +2,8 @@ import os
 import threading
 from socket import socket, AF_INET, SOCK_STREAM, error, SO_REUSEADDR, SOL_SOCKET
 
-
 # from Utilities import tcp_packets
-
+ENCODING = 'utf-8'
 MSG = 1
 USERS = 2
 DIRECT_MSG = 3
@@ -46,9 +45,14 @@ class Server:
     # Private Method
     def handle_client(self, client_sock, client_addr):
         client_name = client_sock.recv(1024).decode()
-
-        client_sock.send('OK'.encode())
-
+        try:
+            client_sock.send('OK'.encode(ENCODING))
+        except error:
+            print(f'{client_name} disconnected')
+            client_sock.close()
+            del self.clients_sock[client_sock]
+            del self.clients_addr[client_name]
+            return
 
         self.clients_sock[client_sock] = client_name
         self.clients_addr[client_name] = client_addr
@@ -62,67 +66,80 @@ class Server:
                 print(pkt)
             except error:
                 continue
+            if pkt != 'EXIT':
+                self.handle_pkt(pkt, client_sock)
+            else:
+                del self.clients_sock[client_sock]
+                client_sock.close()
+                del self.clients_addr[client_name]
+                break
 
+    def find_sock_by_name(self, name_to_search: str):
+        for sock, name in self.clients_sock.items():
+            if name == name_to_search:
+                return sock
 
-    # def find_sock_by_name(self, name_to_find: str):
-    #     for sock, name in self.clients_sock.items():
-    #         if name == name_to_find:
-    #             return sock
-    #
-    # def handle_tcp_pkt(self, pkt: str, client_sock: socket):
-    #     layers = pkt.split('|')
-    #     if layers[0] == REQ_TYPE:
-    #         if layers[1] == 'names':
-    #             pkt = tcp_packets.active_clients_packet(list(self.clients_addr.keys()))
-    #             try:
-    #                 client_sock.send(pkt.encode())
-    #             except error as err:
-    #                 raise err
-    #         if layers[1] == 'files':
-    #             # Update files during running application
-    #             self.files = [file for file in os.listdir(self.file_path) if
-    #                           os.path.isfile(os.path.join(self.file_path, file))]
-    #             pkt = tcp_packets.server_files_packet(self.files)
-    #             try:
-    #                 client_sock.send(pkt.encode())
-    #             except error as err:
-    #                 raise err
-    #
-    #     if layers[0] == MSG_TYPE:
-    #         if layers[2] != 'broadcast':
-    #             receiver_sock = self.find_sock_by_name(layers[2])
-    #             try:
-    #                 receiver_sock.send(pkt.encode())
-    #             except error as err:
-    #                 raise err
-    #         else:
-    #             self.broadcast(pkt, client_sock)
-    #
-    #     if layers[0] == DOWNLOAD_REQ:
-    #         if layers[1] == 'RESUME-DOWNLOAD':
-    #             print('resume pressed!!')
-    #             self.cc_server.pause = False
-    #             threading.Thread(target=self.cc_server.send_file())
-    #
-    #         elif layers[1] == 'PAUSE-DOWNLOAD':
-    #             print('pause pressed!!')
-    #             self.cc_server.pause = True
-    #         else:
-    #             print(
-    #                 f'DOWNLOAD_REQ from client {self.clients_sock[client_sock]} at {self.clients_addr[self.clients_sock[client_sock]]}')
-    #             threading.Thread(target=self.download_tcp, args=(layers[1], client_sock,)).start()
-    #             # threading.Thread(target=self.download_rdt, args=(layers[1], client_sock,)).start()
-    #
-    # def broadcast(self, pkt, conn=None):
-    #     copy_client_sock = self.clients_sock.copy()  # important to avoid iterable conflicts
-    #     for client in copy_client_sock:
-    #         if client == conn:
-    #             continue
-    #         try:
-    #             client.send(pkt.encode())
-    #         except error:
-    #             self.remove_client(client)
-    #
+    def handle_pkt(self, pkt: str, client_sock: socket):
+        layers = pkt.split('|')
+        print(f'layers: {layers}')
+        # if layers[0] == REQ_TYPE:
+        #     if layers[1] == 'files':
+        #         # Update files during running application
+        #         self.files = [file for file in os.listdir(self.file_path) if
+        #                       os.path.isfile(os.path.join(self.file_path, file))]
+        #         pkt = tcp_packets.server_files_packet(self.files)
+        #         try:
+        #             client_sock.send(pkt.encode())
+        #         except error as err:
+        #             raise err
+
+        if int(layers[0]) == USERS:
+            pkt = '2|' + '|'.join(list(self.clients_addr.keys()))
+            try:
+                client_sock.send(pkt.encode(ENCODING))
+            except error as err:
+                raise err
+
+        if int(layers[0]) == MSG:
+            print(f'in the process of sending the pkt: {pkt}')
+            if layers[2] != 'all':
+                print(f'sending pkt to {layers[2]}')
+                receiver_sock = self.find_sock_by_name(layers[2])
+                try:
+                    receiver_sock.send(pkt.encode(ENCODING))
+                except error as err:
+                    raise err
+            else:
+                print('broadcasting')
+                self.broadcast(pkt, client_sock)
+
+        # if layers[0] == DOWNLOAD_REQ:
+        #     if layers[1] == 'RESUME-DOWNLOAD':
+        #         print('resume pressed!!')
+        #         self.cc_server.pause = False
+        #         threading.Thread(target=self.cc_server.send_file())
+        #
+        #     elif layers[1] == 'PAUSE-DOWNLOAD':
+        #         print('pause pressed!!')
+        #         self.cc_server.pause = True
+        #     else:
+        #         print(
+        #             f'DOWNLOAD_REQ from client {self.clients_sock[client_sock]} at {self.clients_addr[self.clients_sock[client_sock]]}')
+        #         threading.Thread(target=self.download_tcp, args=(layers[1], client_sock,)).start()
+        #         threading.Thread(target=self.download_rdt, args=(layers[1], client_sock,)).start()
+
+    def broadcast(self, pkt, conn=None):
+        clients_sock_copy = self.clients_sock.copy()  # important to avoid iterable conflicts
+        for client in clients_sock_copy:
+            if client == conn:
+                continue
+            print(f'trying to send to {self.clients_sock[client]}')
+            try:
+                client.send(pkt.encode(ENCODING))
+            except error:
+                print(f'{self.clients_sock[client]} disconnected')
+                # self.remove_client(client)
+
     # def remove_client(self, client_sock):
     #     if client_sock in self.clients_sock:
     #         disconnected_msg = tcp_packets.msg_packet('server', 'broadcast',

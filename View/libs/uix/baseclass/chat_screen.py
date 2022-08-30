@@ -9,6 +9,7 @@ utils.load_kv("chat_screen.kv")
 class ChatScreen(MDScreen, Observer):
     title = StringProperty()
     chat_logs = ListProperty()
+    files = ListProperty()
     users = ListProperty()
 
     def model_is_changed(self):

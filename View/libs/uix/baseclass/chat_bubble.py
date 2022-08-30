@@ -1,5 +1,6 @@
 from kivy.lang import Builder
 from kivy.properties import BooleanProperty
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivymd.uix.label import MDLabel
 
 Builder.load_string(
@@ -22,22 +23,11 @@ Builder.load_string(
             radius:
                 [dp(8), dp(8), (dp(-5), dp(5)), dp(8)] if self.send_by_user \
                 else [(dp(-5), dp(5)), dp(8), dp(8), dp(8)]
-                
-    MDIconButton:
-        id: downloadButton
-        icon: "download"
-        pos_hint: {"center_y": .5}
-        pos: root.width - self.width + dp(10), 0
-        on_release: app.root.download("hey")
-        # disabled: app.root.get_screen('chat').chat_logs[2]["REGULAR"]
-        # opacity: 0 if app.root.get_screen('chat').chat_logs[2]["REGULAR"] else 1
-        
+ 
 """
 )
 
 
-class ChatBubble(MDLabel):
+class ChatBubble(RecycleDataViewBehavior, MDLabel):
     send_by_user = BooleanProperty()
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        REGULAR = BooleanProperty()
+

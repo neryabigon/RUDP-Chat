@@ -1,6 +1,11 @@
 import os
 import sys
 
+from kivy.core.text import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.popup import Popup
+
 root_dir = os.path.split(os.path.abspath(sys.argv[0]))[0]
 sys.path.insert(0, os.path.join(root_dir, "libs", "applibs"))
 
@@ -23,7 +28,14 @@ class ChatApp(MDApp):
         self.model = ClientModel()
 
     def build(self):
+        Window.bind(on_request_close=self.on_request_close)
         return Root(self.model)
+
+    def on_request_close(self, *args):
+        if self.model.active:
+            self.model.disconnect()
+            return False
+        return False
 
 
 if __name__ == '__main__':
