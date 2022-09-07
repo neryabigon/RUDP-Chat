@@ -26,6 +26,7 @@ class Root(ScreenManager):
         Adding the screens to the Root (ScreenManager).
         """
         self.model = model
+        self.send_to = []
 
     def add_screens(self, interval):
         """
@@ -49,7 +50,7 @@ class Root(ScreenManager):
     def goto_screen(self, go_to):
         self.current = go_to
 
-    def login(self, username, password):
+    def login(self, username, password, email):
         if not username:
             toast("Please enter a username")
             return
@@ -58,60 +59,53 @@ class Root(ScreenManager):
             return
         self.model.username = username
         self.model.password = password
-        print(f'username: {username}: password: {password}')
-        check = self.model.connect((HOST, PORT), self.model.username, self.model.password)
+        self.model.email = email
+        print(f'username: {username}, password: {password}, email: {email}')
+        check = self.model.connect((HOST, PORT), self.model.username, self.model.password, self.model.email, True)
+        if check:
+            self.goto_screen('chat')
+        else:
+            toast('Login failed')
         if not check:
             toast('Invalid username or password or server is down')
             self.get_screen('home').ids.username.text = ''
             self.get_screen('home').ids.password.text = ''
             return
-        print(f'{username} connected successfuly!')
-        toast(f'{username} connected successfuly!')
+        print(f'{username} connected successfully!')
+        toast(f'{username} connected successfully!')
         self.goto_screen('chat')
         Clock.schedule_interval(self.receive, 0.5)
         Clock.schedule_interval(self.update_users, 3)
         Clock.schedule_interval(self.update_files, 5)
 
-    # def login(self, username, password):
-    #     if not username:
-    #         toast("Please enter a username")
-    #         return
-    #     if not password:
-    #         toast('Please enter a password')
-    #         return
-    #     print(f'hey: {username}: passw: {password}')
-    #     self.Rclient = basicClient.connect(username, password, False)
-    #     if not self.Rclient:
-    #         print(f'{username} was unable to connect')
-    #         toast(f'{username} was unable to connect')
-    #         return
-    #     print(f'{username} connected successfuly!')
-    #     toast(f'{username} connected successfuly!')
-    #     self.goto_screen('chat')
-    #     self.re_thread = threading.Thread(target=self.receive, daemon=True)
-    #     self.re_thread.start()
-    #     # Clock.schedule_interval(self.start_rec, 1)
-    #
-    # def signup(self, username, password):
-    #     if not username:
-    #         toast("Please enter a username")
-    #         return
-    #     if not password:
-    #         toast('Please enter a password')
-    #         return
-    #     print(f'hey: {username}: passw: {password}')
-    #     self.Rclient = basicClient.connect(username, password, True)
-    #     if not self.Rclient:
-    #         print(f'{username} was unable to connect')
-    #         toast(f'{username} was unable to connect')
-    #         return
-    #     print(f'{username} connected successfuly!')
-    #     toast(f'{username} connected successfuly!')
-    #     self.goto_screen('chat')
-    #
+    def signup(self, username, password, email):
+        if not username:
+            toast("Please enter a username")
+            return
+        if not password:
+            toast('Please enter a password')
+            return
+        self.model.username = username
+        self.model.password = password
+        self.model.email = email
+        print(f'username: {username}, password: {password}, email: {email}')
+        check = self.model.connect((HOST, PORT), self.model.username, self.model.password, self.model.email, False)
+
+        if not check:
+            toast('Invalid username or password or server is down')
+            self.get_screen('home').ids.username.text = ''
+            self.get_screen('home').ids.password.text = ''
+            return
+        print(f'{username} connected successfully!')
+        toast(f'{username} connected successfully!')
+        self.goto_screen('chat')
+        Clock.schedule_interval(self.receive, 0.5)
+        Clock.schedule_interval(self.update_users, 3)
+        Clock.schedule_interval(self.update_files, 5)
+
     # def start_rec(self, _):
     #     self.re_thread.start()
-    #
+
     def log_out(self):
         self.model.disconnect()
         print(f'{self.model.username} disconnected')
@@ -123,28 +117,16 @@ class Root(ScreenManager):
             toast("Please enter any text!")
             return
 
-        self.model.send_message(text)
+        print(self.send_to)
+        self.model.send_message(text, self.send_to)
         self.get_screen('chat').chat_logs.append(
             {"text": text, "send_by_user": True, "pos_hint": {"right": 1}}
         )
 
-        self.get_screen('chat').files.append({"text": 'file', "download": False})
-        self.get_screen('chat').files.append({"text": 'file', "download": False})
-        self.get_screen('chat').files.append({"text": 'file', "download": True})
-        self.get_screen('chat').files.append({"text": 'file', "download": False})
-
-        # print(self.get_screen('chat').chat_logs)
-
         self.scroll_to_bottom()
         # clean text from textfield after sending
         self.get_screen('chat').ids.field.children[2].text = ""
-
-    def scroll_to_bottom(self):
-        rv = self.get_screen('chat').ids.chat_rv
-        box = self.get_screen('chat').ids.box
-        if rv.height < box.height:
-            Animation.cancel_all(rv, "scroll_y")
-            Animation(scroll_y=0, t="out_quad", d=0.5).start(rv)
+        self.send_to.clear()
 
     def receive(self, dt):
         if self.model.received_messages:
@@ -156,7 +138,6 @@ class Root(ScreenManager):
 
     def update_users(self, dt):
         self.model.get_users()
-        print(f'current users: {self.model.users}')
         if self.model.users:
             self.get_screen('chat').users.clear()
             for user in self.model.users:
@@ -172,43 +153,18 @@ class Root(ScreenManager):
                     {"text": file[0], "download": file[1]}
                 )
 
+    def scroll_to_bottom(self):
+        rv = self.get_screen('chat').ids.chat_rv
+        box = self.get_screen('chat').ids.box
+        if rv.height < box.height:
+            Animation.cancel_all(rv, "scroll_y")
+            Animation(scroll_y=0, t="out_quad", d=0.5).start(rv)
+
+    def update_send_to_list(self, name:str):
+        self.send_to.append(name)
+
     def download(self, file_name):
         print(f'file name: {file_name}')
-
-    # def receive(self):
-    #     incom = self.Rclient.receive()
-    #     if incom == '' or 'joined the chat':
-    #         return
-    #     if incom[:4] == '/msg':
-    #         message = incom[5:]
-    #         self.get_screen('chat').chat_logs.append(
-    #             {
-    #                 "text": message,
-    #                 "send_by_user": False,
-    #             }
-    #         )
-    #         self.scroll_to_bottom()
-    #
-    # def update_users(self):
-    #     self.Rclient.write('/clientslist')
-    #     all = self.Rclient.clients_list
-    #     # if all == '':
-    #     #     self.update_users()
-    #     print(f'all: {all}')
-    #     if all[:3] == '/cl':
-    #         ls = all.split(' ')
-    #         ls.remove('/cl')
-    #         ls.remove('')
-    #         self.get_screen('chat').users.clear()
-    #         for user in ls:
-    #             sp = user.split(',')
-    #             if int(sp[1]) == 1:
-    #                 on = True
-    #             else:
-    #                 on = False
-    #             self.get_screen('chat').users.append(
-    #                 {"text": sp[0], "online": on, }
-    #             )
 
     """
     handling file choosing

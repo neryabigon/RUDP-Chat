@@ -2,10 +2,12 @@ from Model.client import Client
 from threading import Thread
 from Utility.utils import deconstruct_msg
 
-MSG = 1
-USERS = 2
-DIRECT_MSG = 3
-FILES = 4
+SIGN = 0
+LOGIN = 1
+MSG = 2
+USERS = 3
+DIRECT_MSG = 4
+FILES = 5
 
 
 class ClientModel:
@@ -20,8 +22,8 @@ class ClientModel:
         self.users = []
         self.files = []
 
-    def connect(self, addr: tuple, username, password):
-        if not self.client.connect(addr, username, password):
+    def connect(self, addr: tuple, username, password, email, login_or_sign):
+        if not self.client.connect(addr, username, password, email, login_or_sign):
             return False
         self.username = username
         self.password = password
@@ -38,9 +40,13 @@ class ClientModel:
         self.client.active = False
         self.client.disconnect()
 
-    def send_message(self, message, send_to="all"):
-        msg = f'{MSG}|{self.username}|{send_to}|{message}'
-        self.client.send_message(msg)
+    def send_message(self, message, send_to:list):
+        if not send_to:
+            msg = f'{MSG}|{self.username}|all|{message}'
+            self.client.send_message(msg)
+        else:
+            msg = f'{MSG}|{self.username}|to|{message}'
+            self.client.send_message(msg, send_to)
 
     def receive_message(self):
         while self.active:
@@ -67,6 +73,7 @@ class ClientModel:
                 self.files.append(deconstructed_msg[1])
 
     def format_msg(self, msg):
+        # print(f'Formatting message: {msg}')
         return f'{msg[1]}: {msg[3]}'
 
     def get_users(self):

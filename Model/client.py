@@ -20,8 +20,11 @@ class Client:
             raise e
         self.username = ''
         self.active = False
+        self.token_id = ''
+        self.password = ''
+        self.email = ''
 
-    def connect(self, addr: tuple, username, password):
+    def connect(self, addr: tuple, username, password, email, log_or_sign):
         try:
             self.client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as e:
@@ -30,29 +33,44 @@ class Client:
 
         try:
             self.client_sock.connect(("127.0.0.1", 12345))
-            msg = f'{username}'
+            if log_or_sign:
+                msg = f'1|{username}|{password}|{email}'
+            else:
+                msg = f'0|{username}|{password}|{email}'
+
             self.client_sock.send(msg.encode(ENCODING))
             success = self.client_sock.recv(1024).decode(ENCODING)
         except socket.error as e:
             print("Failed to connect to the server 1")
             return False
 
-
         # check credentials
-        if success != 'OK':
+        # print(f'<{success[:2]}>')
+        # print(f'<{success}>')
+        if success[:2] != 'OK':
             print("Failed to connect to the server 2")
-            self.client_sock.close()
+            self.disconnect()
             return False
         self.username = username
         self.active = True
+        self.token_id = success[3:]
+        self.password = password
+        self.email = email
         return True
 
     def disconnect(self):
         self.client_sock.send('EXIT'.encode(ENCODING))
         self.client_sock.close()
 
-    def send_message(self, message):
-        self.client_sock.send(message.encode(ENCODING))
+    def send_message(self, message: str, send_to=None):
+        if send_to is None:
+            self.client_sock.send(message.encode(ENCODING))
+        else:
+            splited = message.split('|')
+            msg = f'{splited[0]}|{splited[1]}|'
+            for client in send_to:
+                msg += f'{client}|{splited[3]}'
+                self.client_sock.send(msg.encode(ENCODING))
 
     def receive_message(self):
         if self.active:
@@ -61,5 +79,3 @@ class Client:
                 return msg
             except socket.error as e:
                 print("Failed to receive message")
-
-

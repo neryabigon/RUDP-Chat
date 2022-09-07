@@ -5,7 +5,7 @@ from kivymd.uix.list import OneLineAvatarIconListItem
 Builder.load_string(
     """
 <UserListItem>
-    on_release: print(f'UserListItem: {self.text}')
+    on_release: app.root.update_send_to_list(self.text)
     text: 'UserListItem'
     IconRightWidget:
         icon: "face-profile"
@@ -28,3 +28,5 @@ Builder.load_string(
 
 class UserListItem(OneLineAvatarIconListItem):
     online = BooleanProperty()
+
+

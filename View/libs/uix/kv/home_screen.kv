@@ -33,7 +33,7 @@
                     text: "Sign Up"
                     font_style: "H6"
                     halign: "right"
-                    pos_hint: {"center_x": .4, "center_y": .85}
+                    pos_hint: {"center_x": .4, "center_y": .90}
 
                 CustomLabel:
                     text: "New here?"
@@ -54,20 +54,26 @@
                 MDTextField:
                     id: Username
                     hint_text: "Username"
-                    pos_hint: {"center_x": .5, "center_y": .6}
+                    pos_hint: {"center_x": .5, "center_y": .7}
                     disabled: self.parent.disabled
                     opacity: self.parent.opacity
 
+                MDTextField:
+                    id: Email
+                    hint_text: "email"
+                    pos_hint: {"center_x": .5, "center_y": .50}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
 
                 MDTextField:
                     id: Password
                     hint_text: "Password"
                     password: True
                     password_mask: '*'
-                    pos_hint: {"center_x": .5, "center_y": .4}
+                    pos_hint: {"center_x": .5, "center_y": .30}
                     disabled: self.parent.disabled
                     opacity: self.parent.opacity
-                    on_text_validate: app.root.signup(username.text, password.text)
+                    on_text_validate: app.root.signup(username.text, password.text, Email.text)
 
                 MDFloatingActionButton:
                     icon: "arrow-right"
@@ -75,7 +81,7 @@
                     disabled: self.parent.disabled
                     opacity: self.parent.opacity
                     md_bg_color: app.theme_cls.primary_color
-                    on_release: app.root.signup(Username.text, Password.text)
+                    on_release: app.root.signup(Username.text, Password.text, Email.text)
 
     MDCard:
         id: sign_in
@@ -97,7 +103,7 @@
                 CustomLabel:
                     text: "Sign In"
                     font_style: "H6"
-                    pos_hint: {"center_x": .6, "center_y": .85}
+                    pos_hint: {"center_x": .6, "center_y": .90}
 
                 CustomLabel:
                     text: "Returning?"
@@ -116,7 +122,14 @@
                 MDTextField:
                     id: username
                     hint_text: "Username"
-                    pos_hint: {"center_x": .5, "center_y": .65}
+                    pos_hint: {"center_x": .5, "center_y": .70}
+                    disabled: self.parent.disabled
+                    opacity: self.parent.opacity
+
+                MDTextField:
+                    id: email
+                    hint_text: "email"
+                    pos_hint: {"center_x": .5, "center_y": .48}
                     disabled: self.parent.disabled
                     opacity: self.parent.opacity
 
@@ -125,18 +138,18 @@
                     hint_text: "Password"
                     password: True
                     password_mask: '*'
-                    pos_hint: {"center_x": .5, "center_y": .37}
+                    pos_hint: {"center_x": .5, "center_y": .26}
                     disabled: self.parent.disabled
                     opacity: self.parent.opacity
-                    on_text_validate: app.root.login(username.text, password.text)
+                    on_text_validate: app.root.login(username.text, password.text, email.text)
 
                 MDFloatingActionButton:
                     icon: "arrow-right"
-                    pos_hint: {"center_x": .5, "center_y": .12}
+                    pos_hint: {"center_x": .5, "center_y": .01}
                     disabled: self.parent.disabled
                     opacity: self.parent.opacity
                     md_bg_color: app.theme_cls.primary_dark
-                    on_release: app.root.login(username.text, password.text)
+                    on_release: app.root.login(username.text, password.text, email.text)
 
 
 <MDTextField>
