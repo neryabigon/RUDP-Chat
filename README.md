@@ -26,7 +26,7 @@ in addition to flow control which is similar to the [cubic](https://en.wikipedia
 //TODO: add a state diagram
 
 ## UML
-//TODO: add UML diagram
+![UML](https://user-images.githubusercontent.com/66886354/191479590-9bdec766-c1d7-4a10-beda-2b3244c40547.png)
 
 
 # How To Run
