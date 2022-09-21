@@ -1,18 +1,13 @@
 import os
 import sys
 
-from kivy.core.text import Label
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.popup import Popup
-
 root_dir = os.path.split(os.path.abspath(sys.argv[0]))[0]
 sys.path.insert(0, os.path.join(root_dir, "libs", "applibs"))
 
 import platform
 from kivy.core.window import Window
 from kivymd.app import MDApp
-from Controller.root import Root  # this is the controler
+from Presenter.root import Root  # this is the presenter
 from Model.clientmodel import ClientModel  # this is the model
 
 # This is needed for supporting Windows 10 with OpenGL < v2.0

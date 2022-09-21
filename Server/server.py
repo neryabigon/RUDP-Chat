@@ -24,6 +24,7 @@ class Server:
     def __init__(self, addr: tuple):
         self.addr = addr
         self.clients_addr = {}  # (name:addr)
+        self.clients_token = {}  # (name:token)
         self.clients_sock = {}  # (socket:name)
         self.clients_threads = []
 
@@ -67,12 +68,14 @@ class Server:
             except Exception as e:
                 er_obj = json.loads(e.args[1])
                 print(f'{client_name} was unable to sign up duo to: ' + er_obj['error']['message'])
+                return
         elif int(log_or_sign) == LOGIN:
             try:
                 token_id = db_interface.login_user(auth, db, client_name, client_password, client_email)
             except Exception as e:
                 er_obj = json.loads(e.args[1])
                 print(f'{client_name} was unable to login duo to: ' + er_obj['error']['message'])
+                return
         elif token_id is None:
             self.remove_client(client_sock, None)
             return
@@ -85,10 +88,13 @@ class Server:
 
         self.clients_sock[client_sock] = client_name
         self.clients_addr[client_name] = client_addr
+        self.clients_token[client_name] = token_id
         print(f'***** {client_name} connected *****')
 
+        # announce to all clients that a new client has connected
         # connected_msg = tcp_packets.msg_packet('server', 'broadcast', f'***** {client_name} connected *****')
         # self.broadcast(connected_msg, client_sock)
+
         while self.on:
             try:
                 pkt = client_sock.recv(4096).decode()
@@ -117,6 +123,11 @@ class Server:
             if name == name_to_search:
                 return sock
 
+    def find_token_by_name(self, name_to_search: str):
+        for name, token in self.clients_token.items():
+            if name == name_to_search:
+                return token
+
     def handle_pkt(self, pkt: str, client_sock: socket, token_id: str):
         layers = pkt.split('|')
 
@@ -134,18 +145,19 @@ class Server:
 
         if int(layers[0]) == MSG:
             print(f'in the process of sending the pkt: {pkt}')
+
             if layers[2] != 'all':
                 print(f'sending pkt to {layers[2]}')
                 receiver_sock = self.find_sock_by_name(layers[2])
                 try:
                     receiver_sock.send(pkt.encode(ENCODING))
-                    db_interface.push_message(db, layers[1], layers[3], layers[2])
+                    db_interface.push_message(auth, token_id, db, layers[1], layers[3], layers[2])
                 except error as err:
                     raise err
             else:
                 print('broadcasting')
                 self.broadcast(pkt, client_sock, token_id)
-                db_interface.push_message(db, layers[1], layers[3], layers[2])
+                db_interface.push_message(auth, token_id, db, layers[1], layers[3], layers[2])
 
     def broadcast(self, pkt, conn=None, token_id: str = None):
         clients_sock_copy = self.clients_sock.copy()

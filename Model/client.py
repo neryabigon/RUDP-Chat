@@ -32,7 +32,7 @@ class Client:
             return False
 
         try:
-            self.client_sock.connect(("127.0.0.1", 12345))
+            self.client_sock.connect(("127.0.0.1", 12345))  # TODO: change to addr
             if log_or_sign:
                 msg = f'1|{username}|{password}|{email}'
             else:

@@ -1,0 +1,77 @@
+@startuml
+!theme reddress-darkblue
+
+class Server
+class Client
+
+
+package GUI <<Rectangle>> #5792BB{
+  class Clientmodel
+  class Presenter
+  class View
+}
+
+package Database <<Database>> #4FB67E{
+  class database_interface
+  class Firebase
+}
+
+class Server{
+- socket tcp
+
++ receive_new_clients()
++ broadcast()
++ handle_client()
+}
+
+class database_interface{
++ initialize()
++ add_user()
++ login()
++ logout()
++ get_clients_list()
++ get_online_clients()
++ log_message()
++ get_file_list()
+}
+
+class Client{
+- socket tcp
+- socket udp
+
++ write()
++ receive()
+}
+
+class Clientmodel{
+- Client
++ send()
++ connect()
++ receive_thread()
+}
+
+class Presenter{
+- Clientmodel
++ update_view()
+}
+
+class Firebase {
+- Authentification
+- Database
+- Storage
+}
+
+
+Server <-right- database_interface
+database_interface <-- Server
+Server <-left- Client
+Client <-- Server
+Client <-- Clientmodel
+Clientmodel <-- Client
+View <-- Presenter
+Presenter <-- View
+Presenter <-- Clientmodel
+Clientmodel <-left- Presenter
+database_interface <-- Firebase
+Firebase <-- database_interface
+@enduml

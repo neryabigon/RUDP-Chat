@@ -70,21 +70,22 @@ def get_users(db):
     return users_list
 
 
-#TODO
-def push_message(db, username, message, send_to):
+# TODO - doesn't work
+def push_message(auth, token_id, db, username, message, send_to):
+    # token = refresh_token(auth, token_id)
     if send_to == 'all':
         msg = {
             'sender': username,
             'receiver': 'all',
             'message': message,
-            'timestamp': datetime.now()
+            'timestamp': {".sv": "timestamp"},
         }
-        db.child('messages').push(msg)
+        db.child('messages').child(username).set(msg, token_id)  # TODO - change to push - currently overwrites
     else:
         msg = {
             'sender': username,
             'receiver': send_to,
             'message': message,
-            'timestamp': datetime.now()
+            'timestamp': {".sv": "timestamp"},
         }
-        db.child('messages').push(msg)
+        db.child('messages').child(username).set(msg, token_id)  # TODO - change to push - currently overwrites
